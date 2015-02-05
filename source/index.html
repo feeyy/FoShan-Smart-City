@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+<meta charset="gb2312">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1 ,maximum-scale=1, user-scalable=no">
+<title>佛山智慧新城-首页</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="index_bg">
+  <div id="index_an"> <a href="lc.html">
+    <div class="index_an1"></div>
+    </a> <a href="qy.html">
+    <div class="index_an2"></div>
+    </a> </div>
+    <div id="zcinfo"></div>
+</div>
+<script type="text/javascript" src="js/jquery.js" ></script>
+<script type="text/javascript" src="js/JSON.js" ></script>
+<script type="text/javascript" src="js/config.js" ></script>  
+<script>
+//开始加载
+$(document).ready(function() {
+  //禁止右键
+  $(document).bind("contextmenu",
+  function() {
+    return false;
+  });
+  $(document).bind("selectstart",
+  function() {
+    return false;
+  });
+  
+	//获取参数设置
+	getconfig();
+    
+});
+
+
+</script>
+</body>
+</html>

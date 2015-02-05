@@ -1,0 +1,40 @@
+Dim httpd
+'Shell.Service.Icon "/images/ico.gif"
+Shell.Service.RunService "多媒体触摸查询软件", "多媒体触摸查询软件", "多媒体触摸查询软件"
+
+
+'---------------------- Service Event ---------------------
+ 
+Sub OnServiceStart()
+    Set httpd = NetBox.CreateObject("NetBox.HttpServer")
+
+    If httpd.Create("", 8500) = 0 Then
+        Set host = httpd.AddHost("", "\source")
+
+        host.EnableScript = true
+
+        host.AddDefault "index.htm"
+        host.AddDefault "default.asp"
+        host.AddDefault "index.asp"
+
+        httpd.Start
+
+  
+       
+
+    else
+        Shell.Quit 0
+    end if
+End Sub
+
+Sub OnServiceStop()
+    httpd.Close
+End Sub
+
+Sub OnServicePause()
+    httpd.Stop
+End Sub
+
+Sub OnServiceResume()
+    httpd.Start
+End Sub

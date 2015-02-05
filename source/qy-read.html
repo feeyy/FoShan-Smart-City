@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+<meta charset="gb2312">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1 ,maximum-scale=1, user-scalable=no">
+<title>佛山智慧新城-企业-内容</title>
+<link rel="stylesheet" href="css/idangerous.swiper.css">
+<link rel="stylesheet" href="css/idangerous.swiper.scrollbar.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="for_bg">
+  <div id="dh"><img src="img/dh3.png" width="687" height="64" border="0" usemap="#Map">
+    <map name="Map">
+      <area shape="rect" coords="222,4,406,61" href="qy.html" onFocus="blur();">
+      <area shape="rect" coords="5,4,189,61" href="index.html" onFocus="blur();">
+    </map>
+  </div>
+  <a href="javascript:history.go(-1)">
+  <div id="fh"></div>
+  </a>
+  <div id="qy-neir">
+    <div class="qy-logo"><img src="uppic/gl.png" width="240" height="130"></div>
+    <div class="qy-name"></div>
+    <div class="qy-lc"></div>
+    <div class="qy-tel"></div>
+    <div class="qy-js">
+      <div class="qyjs-container">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide">
+            <div id="js-neir"></div>
+          </div>
+        </div>
+      </div>
+      <div class="qyjs-scrollbar"></div>
+    </div>
+  </div>
+  <div class="pageUp-qy-read"></div>
+  <div class="pageDown-qy-read"></div>
+  <div id="qy-read-pic">
+    <div class="qypic-container">
+      <div id="qy-ad" class="swiper-wrapper">
+      </div>
+    </div>
+    <div class="qypic-pagination"></div>
+  </div>
+  <div id="zcinfo"></div>
+</div>
+<script type="text/javascript" src="js/jquery.js" ></script> 
+<script type="text/javascript" src="js/idangerous.swiper-2.0.min.js"></script> 
+<script type="text/javascript" src="js/idangerous.swiper.scrollbar-2.0.js"></script>
+<script type="text/javascript" src="js/JSON.js" ></script>  
+<script type="text/javascript" src="js/jquery.params.js"></script>
+<script type="text/javascript" src="js/config.js" ></script>
+<script>
+//开始加载
+$(document).ready(function() {
+  //禁止右键
+  $(document).bind("contextmenu",
+  function() {
+    return false;
+  });
+  $(document).bind("selectstart",
+  function() {
+    return false;
+  });
+
+  $.ajaxSetup({
+    async: false
+  });
+  //设置为同步，否则滑动事件被提前执行导致渲染失败！
+  
+  var id = $.query.get("id");
+  getxx(id);
+  
+  //获取参数设置
+  getconfig();
+
+});
+
+//获取详细数据
+function getxx(id) {
+  //发数据业务请求
+  $.post("appserver/data_ajax.asp?ac=getqyxx&id=" + id);
+
+  //获取企业详细JSON数据
+  $.ajax({
+    url: "appserver/qyxx.json",
+    beforeSend: function() {},
+    success: function(data, textStatus) {
+      var dd = JSON.decode(data);
+      var logo = dd.qylogo;
+	  var ad1 = dd.ad1;
+	  var ad2 = dd.ad2;
+	  var ad3 = dd.ad3;
+	  var ad4 = dd.ad4;
+	  
+      $(".qy-name").html(dd.qyname);
+      if (logo != "") {
+        $(".qy-logo").html("<img src=\"" + dd.qylogo + "\" width=\"240\" height=\"130\">");
+      } else {
+        $(".qy-logo").html(dd.qyname);
+      }
+      $(".qy-tel").html(dd.qytel);
+      $(".qy-lc").html(dd.qylc);
+      $("#js-neir").html(dd.qyjs);
+	  
+	  var temad="";
+	  
+	  if(ad1!=""){
+		 temad += "<div class=\"swiper-slide\"><img src=\"" + ad1 + "\" width=\"1037\" height=\"686\"></div>";
+		  }
+	  if(ad2!=""){
+		 temad += "<div class=\"swiper-slide\"><img src=\"" + ad2 + "\" width=\"1037\" height=\"686\"></div>";
+		  }  
+	  if(ad3!=""){
+		 temad += "<div class=\"swiper-slide\"><img src=\"" + ad3 + "\" width=\"1037\" height=\"686\"></div>";
+		  }
+	  if(ad4!=""){
+		 temad += "<div class=\"swiper-slide\"><img src=\"" + ad4 + "\" width=\"1037\" height=\"686\"></div>";
+		  }  
+		$("#qy-ad").html(temad);  
+		
+		if(ad1==""&&ad2==""&&ad3==""&&ad4==""){
+			 $("#qy-ad").html("<div class=\"swiper-slide\"><img src=\"img/ad.jpg\" width=\"1037\" height=\"686\"></div><div class=\"swiper-slide\"><img src=\"img/ad.jpg\" width=\"1037\" height=\"686\"></div>");
+			}
+    },
+    complete: function() {},
+    error: function() {}
+  });
+
+
+  //企业图片滑动
+  var mySwiper2 = new Swiper('.qypic-container', {
+    slidesPerView: 1,
+    mousewheelControl: true,
+    loop: true,
+    autoplay: 5000,
+    //Enable Scrollbar
+    pagination: '.qypic-pagination',
+    paginationClickable: true
+  });
+  $('.pageUp-qy-read').on('click',
+  function(e) {
+    e.preventDefault();
+	mySwiper2.swipePrev()
+  });
+  $('.pageDown-qy-read').on('click',
+  function(e) {
+    e.preventDefault();
+	mySwiper2.swipeNext()
+  });
+
+  //企业介绍滑动
+  var mySwiper1 = new Swiper('.qyjs-container', {
+    scrollContainer: true,
+    mousewheelControl: true,
+    mode: 'vertical',
+    //Enable Scrollbar
+    scrollbar: {
+      container: '.qyjs-scrollbar',
+      hide: true,
+      draggable: true
+    }
+  });
+
+}
+
+</script>
+</body>
+</html>

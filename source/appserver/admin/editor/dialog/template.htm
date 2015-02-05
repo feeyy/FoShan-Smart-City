@@ -1,0 +1,188 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<script type="text/javascript" src="dialog.js"></script>
+<script type="text/javascript" src="../template/template.js"></script>
+
+<script type="text/javascript">
+document.write ("<link href='../skin/" + config.Skin + "/dialog.css' type='text/css' rel='stylesheet'>");
+document.write("<title>" + lang["DlgTemplate"] + "</title>");
+
+
+
+function ok(){
+	var els = iframe_preview.document.body.getElementsByTagName("IMG");
+	var l = els.length;
+	for (var i=0; i<l; i++){
+		var s = els[i].getAttribute("src", 2);
+		if ((s.substring(0,1)!="/")&&(s.indexOf("://")==-1)){
+			if (s.substring(0,3)=="../"){
+				s = s.substr(3);
+			}else{
+				s = "template/" + s;
+			}
+			s = relativePath2setPath(s);
+		}
+		els[i].setAttribute("eWebEditor_Temp_Img_Url", s);
+	}
+
+	var html = iframe_preview.document.body.innerHTML;	
+	if (s_PosFlag=="replace"){
+		dialogArguments.setHTML(html, true);
+	}else{
+		dialogArguments.insertHTML(html);
+	}
+
+	if (l>0){
+		var imgs = dialogArguments.eWebEditor.document.getElementsByTagName("IMG");
+		for (var i=0; i<imgs.length; i++){
+			var url = imgs[i].getAttribute("eWebEditor_Temp_Img_Url", 2);
+			if (url){
+				imgs[i].src = url;
+				imgs[i].removeAttribute("eWebEditor_Temp_Img_Url");
+			}
+		}
+	}
+
+	window.returnValue = null;
+	window.close();
+}
+
+
+function InitDocument(){
+	lang.TranslatePage(document);
+
+	initTemplateList();
+	doClickItem(0);
+	adjustDialog();
+}
+
+function initTemplateList(){
+	var html = "";
+	for (var i=0; i<config.Template.length; i++){
+		html += "<div id='item_"+i+"' class='item' onclick='doClickItem("+i+")'>"+config.Template[i][2]+"</div>";
+	}
+	divOption.innerHTML = html;
+}
+
+var n_CurrItem = -1;
+function doClickItem(n){
+	if (n_CurrItem==n){return;}
+
+	var el;
+	if (n_CurrItem!=-1){
+		el = document.getElementById("item_"+n_CurrItem);
+		el.className = "item";
+	}
+
+	el = document.getElementById("item_"+n);
+	el.className = "itemselected";
+
+	var ifr = document.getElementById("iframe_preview");
+	ifr.style.visibility = "hidden";
+	ifr.style.position = "absolute";
+	iframe_preview.location.replace("../template/" + config.Template[n][1]);
+	
+	n_CurrItem = n;
+}
+
+function doPreviewOnload(){
+	if (n_CurrItem == -1){return;}
+
+	var ifr = document.getElementById("iframe_preview");
+	var bw = parseInt(config.Template[n_CurrItem][0]);
+	var bh = parseInt(bw*3/4);
+	ifr.style.width = bw +"px";
+	ifr.style.height = bh +"px";
+
+	var sw = iframe_preview.document.body.scrollWidth;
+	var sh = iframe_preview.document.body.scrollHeight;
+
+	var r = bw/400;
+	var rw = sw/bw*r;
+	var rh = sh/bh*r;
+
+	var w,h, z;
+	if ((rw>rh)&&(rw>1)){
+		w = 400;
+		h = parseInt(sh/rw);
+		z = 1/rw*100;
+	}else if((rh>rw)&&(rh>1)){
+		h = 300;
+		w = parseInt(sw/rh);
+		z = 1/rh*100;
+	}else{
+		w = 400;
+		h = 300;
+		z = 100;
+	}
+
+	divPreview.style.paddingLeft = parseInt((410-w)/2) + "px";
+	divPreview.style.paddingTop = parseInt((310-h)/2) + "px";
+
+	ifr.style.width = w +"px";
+	ifr.style.height = h + "px";
+	iframe_preview.document.body.runtimeStyle.zoom = z + "%";
+	ifr.style.visibility = "";
+	ifr.style.position = "";
+
+}
+
+var s_PosFlag = "insert";
+function doPosClick(s_Flag){
+	if (s_PosFlag==s_Flag){return;}
+
+	if (s_Flag=="insert"){
+		d_pos_insert.checked=true;
+		d_pos_replace.checked=false;
+	}else{
+		d_pos_insert.checked=false;
+		d_pos_replace.checked=true;
+	}
+	s_PosFlag = s_Flag;
+}
+</script>
+
+<style>
+.item {padding:0px 0px 0px 5px;margin:0px;WHITE-SPACE: nowrap;color:#000000;background-color:#ffffff}
+.itemselected {padding:0px 0px 0px 5px;margin:0px;WHITE-SPACE: nowrap;color:#ffffff;background-color:#0A246A}
+</style>
+
+</HEAD>
+
+<BODY onload="InitDocument()">
+<table border=0 cellpadding=0 cellspacing=5 id=tabDialogSize><tr><td>
+
+<table border=0 cellpadding=0 cellspacing=0 width="100%" align=center>
+<tr><td>
+
+<table border=0 cellpadding=0 cellspacing=0 align=center>
+<tr>
+	<td><span lang="DlgTemplateOption"></span>:</td>
+	<td></td>
+	<td><span lang="DlgTemplatePreview"></span>:</td>
+</tr>
+<tr>
+	<td vAlign=top noWrap>
+		<DIV id=divOption style="BORDER-RIGHT: 1.5pt inset; PADDING-RIGHT: 0px; BORDER-TOP: 1.5pt inset; PADDING-LEFT: 0px; PADDING-BOTTOM: 0px; OVERFLOW: auto; BORDER-LEFT: 1.5pt inset; WIDTH: 150px; PADDING-TOP: 0px; BORDER-BOTTOM: 1.5pt inset; HEIGHT: 310px; BACKGROUND-COLOR: white">
+		</DIV>
+	</td>
+	<td width=10>&nbsp; </td>
+	<td vAlign=top>
+		<DIV id=divPreview style="BORDER-RIGHT: 1.5pt inset; PADDING-RIGHT: 0px; BORDER-TOP: 1.5pt inset; PADDING-LEFT: 5px; PADDING-BOTTOM: 0px; VERTICAL-ALIGN: top; OVERFLOW: hidden; BORDER-LEFT: 1.5pt inset; WIDTH: 410px; PADDING-TOP: 5px; BORDER-BOTTOM: 1.5pt inset; HEIGHT: 310px; BACKGROUND-COLOR: white">
+			<iframe id=iframe_preview src="blank.htm" width="400px" height="300px" style="VISIBILITY: hidden;" onload="doPreviewOnload()" frameborder=0 scrolling="no"></iframe>
+		</DIV>
+	</td>
+</tr>
+<tr>
+	<td colspan=3><input type=radio checked id=d_pos_insert onclick="doPosClick('insert')"><label for=d_pos_insert><span lang=DlgComInsertCursor></span></label>&nbsp; <input type=radio id=d_pos_replace onclick="doPosClick('replace')"><label for=d_pos_replace><span lang=DlgComInsertReplace></span></label></td>
+</tr>
+</table>
+
+</td></tr>
+<tr><td height=5></td></tr>
+<tr><td noWrap align=right><input type=submit class="dlgBtnCommon" value='' id=Ok onclick="ok()" lang=DlgBtnOK>&nbsp;&nbsp;<input type=button class="dlgBtnCommon" value='' onclick="window.close();" lang=DlgBtnCancel></td></tr>
+
+</td></tr></table>
+
+</BODY></HTML>

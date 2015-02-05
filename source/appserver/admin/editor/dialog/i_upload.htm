@@ -1,0 +1,312 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<script type="text/javascript" src="dialog.js"></script>
+
+<script type="text/javascript">
+String.prototype.Contains = function(s){
+	return (this.indexOf(s)>-1);
+};
+
+/////////////////////////////////////////////////////////////
+
+myBrowser = new Object();
+myBrowser_Init();
+
+function myBrowser_Init(){
+	var s = navigator.userAgent.toLowerCase();
+	myBrowser.IsIE = s.Contains('msie');
+	myBrowser.IsIE7 = s.Contains('msie 7');
+	myBrowser.IsSP2 = s.Contains("sv1");
+	myBrowser.IsGecko = s.Contains('gecko/');
+	myBrowser.IsSafari = s.Contains('safari');
+	myBrowser.IsOpera = s.Contains('opera');
+	myBrowser.IsMac = s.Contains('macintosh');
+	myBrowser.IsCompatible = myBrowser_IsCompatible();
+
+	if (!myBrowser.IsCompatible){
+		alert(lang["MsgNotCompatibleFunc"]);
+		window.returnValue = null;
+		window.close();
+	}
+}
+
+function myBrowser_IsCompatible(){
+	if ( myBrowser.IsIE && !myBrowser.IsMac && !myBrowser.IsOpera ){
+		var s_Ver = navigator.appVersion.match(/MSIE (.\..)/)[1];
+		return ( s_Ver >= 5.5 );
+	}
+	return false;
+}
+
+/////////////////////////////////////////////////////////////
+
+config = new Object();
+config.StyleName = GetParam("style", "coolblue");
+config.CusDir = GetParam("cusdir", "");
+
+var pType = GetParam("type", "image").toLowerCase();
+var pLink = GetParam("link", "");
+var pThumbnail = GetParam("thumbnail", "");
+
+var oLink,oThumbnail;
+if (pLink){
+	try{
+		eval("oLink=dialogArguments.document."+pLink);
+	}catch(e){}
+}
+if (pThumbnail){
+	try{
+		eval("oThumbnail=dialogArguments.document."+pThumbnail);
+	}catch(e){}
+}
+if (!oLink){
+	alert(lang["DlgIUploadErrLink"]);
+	window.returnValue = null;
+	window.close();
+}
+
+LoadScript("../style/"+config.StyleName+".js");
+</script>
+
+
+<script type="text/javascript">
+lang = new Object();
+
+lang.TranslatePage = function( targetDocument ){
+	var aInputs = targetDocument.getElementsByTagName("INPUT");
+	for ( i = 0 ; i < aInputs.length ; i++ ){
+		if ( aInputs[i].getAttribute("lang") ){
+			aInputs[i].value = lang[ aInputs[i].getAttribute("lang") ];
+		}
+	}
+
+	var aSpans = targetDocument.getElementsByTagName("SPAN");
+	for ( i = 0 ; i < aSpans.length ; i++ ){
+		if ( aSpans[i].getAttribute("lang") ){
+			aSpans[i].innerHTML = lang[ aSpans[i].getAttribute("lang") ];
+		}
+	}
+
+	var aOptions = targetDocument.getElementsByTagName("OPTION");
+	for ( i = 0 ; i < aOptions.length ; i++ ){
+		if ( aOptions[i].getAttribute("lang") ){
+			aOptions[i].innerHTML = lang[ aOptions[i].getAttribute("lang") ];
+		}
+	}
+};
+
+LoadScript("../js/zh-cn.js");
+</script>
+
+
+<script type="text/javascript">
+var sTitle, bAllowUpload, sAllowExt, sAllowSize;
+
+switch(pType){
+case "image":
+	sTitle=lang["DlgIUploadImage"];
+	sAllowExt = config.AllowImageExt;
+	sAllowSize = config.AllowImageSize;
+	break;
+case "flash":
+	sTitle=lang["DlgIUploadFlash"];
+	sAllowExt = config.AllowFlashExt;
+	sAllowSize = config.AllowFlashSize;
+	break;
+case "media":
+	sTitle=lang["DlgIUploadMedia"];
+	sAllowExt = config.AllowMediaExt;
+	sAllowSize = config.AllowMediaSize;
+	break;
+default:
+	pType="file";
+	sTitle=lang["DlgIUploadFile"];
+	sAllowExt = config.AllowFileExt;
+	sAllowSize = config.AllowFileSize;
+	break;
+}
+sTitle = lang["DlgIUpload"]+"("+sTitle+")";
+bAllowUpload = ((parseFloat(sAllowSize)>0) ? true : false);
+
+
+document.write("<link href='../skin/" + config.Skin + "/dialog.css' type='text/css' rel='stylesheet'>");
+document.write("<title>" + sTitle + "</title>");
+
+
+
+
+var sFromUrl = "http://";
+
+var sSLTUrl = "";
+var sCheckFlag = "file";
+
+
+function InitDocument(){
+	lang.TranslatePage(document);
+
+	if (!bAllowUpload){
+		sCheckFlag = "url";
+	}
+	RadioClick(sCheckFlag);
+
+	d_fromurl.value = sFromUrl;
+
+	adjustDialog();
+}
+
+
+function RadioClick(what){
+	if (what=="url"){
+		d_fromurl.disabled=false;
+		if (config.AllowBrowse=="1"){
+			d_browse.disabled=false;
+		}
+		d_checkfromurl.checked=true;
+		if (bAllowUpload){
+			d_checkfromfile.checked=false;
+			document.myuploadform.uploadfile.disabled=true;
+		}
+	}else{
+		d_checkfromurl.checked=false;
+		document.myuploadform.uploadfile.disabled=false;
+		d_checkfromfile.checked=true;
+		d_fromurl.disabled=true;
+		if (config.AllowBrowse=="1"){
+			d_browse.disabled=true;
+		}
+	}
+}
+
+
+function UploadError(s_Flag){
+	AbleItems();
+	RadioClick('file');
+	divProcessing.style.display="none";
+	try {
+		BaseAlert(document.myuploadform.uploadfile, getUploadErrDesc(s_Flag, sAllowExt, sAllowSize));
+	}
+	catch(e){}
+}
+
+
+function UploadSaved(sPathFileName, sPathFileName_s){
+	d_fromurl.value = sPathFileName;
+	if (sPathFileName_s){
+		sSLTUrl = sPathFileName_s;
+	}
+	
+	ReturnValue();
+}
+
+
+function ReturnValue(){
+	sFromUrl = d_fromurl.value;
+	try{
+		oLink.value=sFromUrl;
+		oThumbnail.value=sSLTUrl;
+	}catch(e){}
+
+	window.returnValue = null;
+	window.close();
+}
+
+
+function ok(){
+	if (d_checkfromurl.checked){
+		ReturnValue();
+	}else{
+		if (!IsExt(document.myuploadform.uploadfile.value,sAllowExt)){
+			UploadError("ext");
+			return false;
+		}
+
+		DisableItems();
+		divProcessing.style.display="";
+		document.myuploadform.submit();
+	}
+}
+
+
+function DisableItems(){
+	d_checkfromfile.disabled=true;
+	d_checkfromurl.disabled=true;
+	d_fromurl.disabled=true;
+	if (config.AllowBrowse=="1"){
+		d_browse.disabled=true;
+	}
+	Ok.disabled=true;
+}
+
+
+function AbleItems(){
+	d_checkfromfile.disabled=false;
+	d_checkfromurl.disabled=false;
+	d_fromurl.disabled=false;
+	if (config.AllowBrowse=="1"){
+		d_browse.disabled=false;
+	}
+	Ok.disabled=false;
+}
+
+
+</script>
+
+<BODY onload="InitDocument()">
+<table border=0 cellpadding=0 cellspacing=5 id=tabDialogSize><tr><td>
+
+
+<table border=0 cellpadding=0 cellspacing=5 align=center>
+<tr valign=top><td>
+
+		<fieldset>
+		<legend><span lang=DlgIUploadOpt></span></legend>
+		<table border=0 cellpadding=5 cellspacing=0 width="100%">
+		<tr><td>
+
+			<table border=0 cellpadding=0 cellspacing=0 width="300px"><tr><td></td></tr></table>
+			<table border=0 cellpadding=0 cellspacing=2 width="100%">
+			<script type="text/javascript">
+			if (bAllowUpload){
+				document.write("<tr>");
+				document.write("<td noWrap width=\"20%\"><input type=radio id=\"d_checkfromfile\" value=\"1\" onclick=\"RadioClick('file')\"><label for=d_checkfromfile>"+lang["DlgFromFile"]+"</label>:</td>");
+				document.write("<td noWrap width=\"80%\">");
+				document.write(getUploadForm(pType));
+				document.write("</td>");
+				document.write("</tr>");
+			}
+			</script>
+			<tr>
+				<td noWrap width="20%"><input type=radio id="d_checkfromurl" value="1" onclick="RadioClick('url')"><label for=d_checkfromurl><span lang=DlgFromUrl></span></label>:</td>
+				<td noWrap width="80%">
+				<script type="text/javascript">
+				if (config.AllowBrowse=="1"){
+					document.write("<table border=0 cellpadding=0 cellspacing=0 width='100%'><tr><td width='100%'><input type=text id='d_fromurl' style='width:100%' size=20 value=''></td><td><input class='dlgBtnBrowse' type=button id='d_browse' onclick=\"SelectBrowse('"+pType+"','fromurl')\" value='"+lang["DlgBtnBrowse"]+"' align=absmiddle></td></tr></table>");
+				} else {
+					document.write("<input type=text id='d_fromurl' style='width:100%' size=30 value=''>");
+				}
+				</script>
+				</td>
+			</tr>
+			</table>
+
+		</td></tr>
+		</table>
+		</fieldset>
+
+
+</td></tr>
+<tr><td noWrap align=right><input type=submit class="dlgBtnCommon" value='' id=Ok onclick="ok()" lang=DlgBtnOK>&nbsp;&nbsp;<input type=button class="dlgBtnCommon" value='' onclick="window.close();" lang=DlgBtnCancel></td></tr>
+</table>
+
+
+</td></tr></table>
+
+
+<div id=divProcessing style="width:200px;height:30px;position:absolute;left:70px;top:40px;display:none">
+<table border=0 cellpadding=0 cellspacing=1 bgcolor="#000000" width="100%" height="100%"><tr><td bgcolor=#3A6EA5><marquee align="middle" behavior="alternate" scrollamount="5"><font color=#FFFFFF><span lang=DlgComUploading></span></font></marquee></td></tr></table>
+</div>
+
+
+</body>
+</html>

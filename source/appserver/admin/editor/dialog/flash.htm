@@ -1,0 +1,595 @@
+<HTML>
+<HEAD>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<script type="text/javascript" src="dialog.js"></script>
+
+<script type="text/javascript">
+document.write ("<link href='../skin/" + config.Skin + "/dialog.css' type='text/css' rel='stylesheet'>");
+
+var sAction = "INSERT";
+var sTitle = lang["DlgComInsert"];
+
+var oControl;
+var oSeletion;
+var sRangeType;
+
+var sFromUrl = "http://";
+var sWidth = "200";
+var sHeight = "200";
+var sAlign = "";
+var sVSpace = "";
+var sHSpace = "";
+var sLoop = "true";
+var sPlay = "true";
+var sBgColor = "";
+var sScale = "";
+var sQuality = "high";
+var sMenu = "";
+var sWmode = "";
+var sFlashVars = "";
+
+var sCheckFlag = "file";
+var oParam = new Object;
+
+var bAllowUpload = ((parseFloat(config.AllowFlashSize)>0) ? true : false);
+
+oSelection = dialogArguments.eWebEditor.document.selection.createRange();
+sRangeType = dialogArguments.eWebEditor.document.selection.type;
+
+if (sRangeType == "Control") {
+	oControl = oSelection.item(0);
+
+	if ((oControl.tagName == "OBJECT")&&(oControl.getAttribute("classid",2).toLowerCase()=="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000")){
+		sAction = "MODI";
+		var o_Embed = oControl.getElementsByTagName("EMBED");
+		if (o_Embed){
+			oControl = o_Embed;
+		}
+	//}else if ((oControl.tagName == "EMBED")&&(oControl.getAttribute("type",2).toLowerCase()=="application/x-shockwave-flash")){
+	}else if (oControl.tagName == "EMBED"){
+		var o_EmbedType = oControl.attributes["type"];
+		if (o_EmbedType && o_EmbedType.nodeValue == 'application/x-shockwave-flash' ){
+			sAction = "MODI";
+		}
+	}
+
+
+	if (sAction=="MODI"){
+		sTitle = lang["DlgComModify"];
+		sCheckFlag = "url";
+
+
+		if (oControl.tagName=="OBJECT"){
+
+			sAlign = oControl.align;
+			sWidth = oControl.width;
+			sHeight = oControl.height;
+			sVSpace = oControl.vspace;
+			sHSpace = oControl.hspace;
+
+			initParamObj(oControl.innerHTML);
+			sFromUrl = getParamValue("movie");
+			sLoop = getParamValue("loop");
+			if (sLoop=="-1"){
+				sLoop = "true";
+			}else if (sLoop=="0"){
+				sLoop = "false";
+			}else{
+				sLoop = "";
+			}
+
+			sPlay = getParamValue("play");
+			if (sPlay=="-1"){
+				sPlay = "true";
+			}else if (sPlay=="0"){
+				sPlay = "false";
+			}else{
+				sPlay = "";
+			}
+
+			sBgColor = getParamValue("bgcolor");
+			sScale = getParamValue("scale");
+			sQuality = getParamValue("quality");
+			sMenu = getParamValue("menu");
+			sWmode = getParamValue("wmode");
+			sFlashVars = getParamValue("flashvars");
+
+		}else{
+
+			sAlign = get_Attribute(oControl, "align");
+			sWidth = get_Attribute(oControl, "width");
+			sHeight = get_Attribute(oControl, "height");
+			sVSpace = get_Attribute(oControl, "vspace");
+			sHSpace = get_Attribute(oControl, "hspace");
+
+
+			sFromUrl = get_Attribute(oControl, "src");
+			sLoop = get_Attribute(oControl, "loop");
+			sPlay = get_Attribute(oControl, "play");
+
+			sBgColor = get_Attribute(oControl, "bgcolor");
+			sScale = get_Attribute(oControl, "scale");
+			sQuality = get_Attribute(oControl, "quality");
+			sMenu = get_Attribute(oControl, "menu");
+			sWmode = get_Attribute(oControl, "wmode");
+			sFlashVars = get_Attribute(oControl, "flashvars");
+
+		}
+	}
+
+
+}
+
+
+document.write("<title>" + lang["DlgFlash"] + "(" + sTitle + ")</title>");
+
+
+function get_Attribute(obj, s_Name){
+	var o = obj.attributes[s_Name];
+	if (o){
+		if (o.nodeValue){
+			return o.nodeValue;
+		}else{
+			return "";
+		}
+	}else{
+		return "";
+	}
+}
+
+function InitDocument(){
+	lang.TranslatePage(document);
+
+	SearchSelectValue(d_align, sAlign.toLowerCase());
+	SearchSelectValue(d_loop, sLoop.toLowerCase());
+	SearchSelectValue(d_play, sPlay.toLowerCase());
+	SearchSelectValue(d_scale, sScale.toLowerCase());
+	SearchSelectValue(d_quality, sQuality.toLowerCase());
+	SearchSelectValue(d_menu, sMenu.toLowerCase());
+	SearchSelectValue(d_wmode, sWmode.toLowerCase());
+	
+	if (!bAllowUpload){
+		sCheckFlag = "url";
+	}
+	RadioClick(sCheckFlag);
+
+	d_fromurl.value = sFromUrl;
+	d_bgcolor.value = sBgColor;
+	s_bgcolor.style.backgroundColor = sBgColor;
+	d_width.value = sWidth;
+	d_height.value = sHeight;
+	d_vspace.value = sVSpace;
+	d_hspace.value = sHSpace;
+	d_flashvars.value = sFlashVars;
+	
+	doPreview();
+	
+	adjustDialog();
+}
+
+function initParamObj(html){
+	var re = new RegExp("<param name=[\'\"]([a-zA-Z].*?)[\'\"] value=[\'\"](.*?)[\'\"]>","gi");
+	while((arr = re.exec(html))!=null){
+		oParam[RegExp.$1.toLowerCase()] = RegExp.$2;
+	}
+}
+
+function getParamValue(s_Key){
+	return (oParam[s_Key]) ? oParam[s_Key] : "";
+}
+
+
+
+function RadioClick(what){
+	if (what=="url"){
+		d_fromurl.disabled=false;
+		if (config.AllowBrowse=="1"){
+			d_browse.disabled=false;
+		}
+		d_checkfromurl.checked=true;
+		if (bAllowUpload){
+			d_checkfromfile.checked=false;
+			document.myuploadform.uploadfile.disabled=true;
+		}
+	}else{
+		d_checkfromurl.checked=false;
+		document.myuploadform.uploadfile.disabled=false;
+		d_checkfromfile.checked=true;
+		d_fromurl.disabled=true;
+		if (config.AllowBrowse=="1"){
+			d_browse.disabled=true;
+		}
+	}
+}
+
+
+function UploadError(s_Flag){
+	AbleItems();
+	RadioClick('file');
+	divProcessing.style.display="none";
+	try {
+		BaseAlert(document.myuploadform.uploadfile, getUploadErrDesc(s_Flag, config.AllowFlashExt, config.AllowFlashSize));
+	}
+	catch(e){}
+}
+
+
+function UploadSaved(sPathFileName){
+	d_fromurl.value = sPathFileName;
+	ReturnValue();
+}
+
+
+function ReturnValue(){
+	sFromUrl = d_fromurl.value;
+	sBgColor = d_bgcolor.value;
+	sAlign = d_align.value;
+	sWidth = d_width.value;
+	sHeight = d_height.value;
+	sVSpace = d_vspace.value;
+	sHSpace = d_hspace.value;
+	sLoop = d_loop.value;
+	sPlay = d_play.value;
+	sScale = d_scale.value;
+	sQuality = d_quality.value;
+	sMenu = d_menu.value;
+	sWmode = d_wmode.value;
+	sFlashVars = d_flashvars.value;
+
+
+	var html = "<embed type=\"application/x-shockwave-flash\" pluginspage=\"http://www.macromedia.com/go/getflashplayer\"";
+
+	if (sAlign!=""){
+		html += " align=\""+sAlign+"\"";
+	}
+	if (sWidth!=""){
+		html += " width=\""+sWidth+"\"";
+	}
+	if (sHeight!=""){
+		html += " height=\""+sHeight+"\"";
+	}
+	if (sVSpace!=""){
+		html += " vspace=\""+sVSpace+"\"";
+	}
+	if (sHSpace!=""){
+		html += " hspace=\""+sHSpace+"\"";
+	}
+
+	html += " src=\""+sFromUrl+"\"";
+
+	if (sBgColor != ""){
+		html += " bgcolor=\""+sBgColor+"\"";
+	}
+	if (sLoop != ""){
+		html += " loop=\""+sLoop+"\"";
+	}
+	if (sPlay != ""){
+		html += " play=\""+sPlay+"\"";
+	}
+
+	if (sScale != ""){
+		html += " scale=\""+sScale+"\"";
+	}
+	if (sQuality != ""){
+		html += " quality=\""+sQuality+"\"";
+	}
+	if (sMenu != ""){
+		html += " menu=\""+sMenu+"\"";
+	}
+	if (sWmode != ""){
+		html += " wmode=\""+sWmode+"\"";
+	}
+	if (sFlashVars != ""){
+		html += " flashvars=\""+sFlashVars+"\"";
+	}
+
+	html += "></embed>";
+
+	dialogArguments.insertHTML(html);
+
+	window.returnValue = null;
+	window.close();
+}
+
+
+function ok(){
+	d_width.value = ToInt(d_width.value);
+	d_height.value = ToInt(d_height.value);
+	d_vspace.value = ToInt(d_vspace.value);
+	d_hspace.value = ToInt(d_hspace.value);
+
+	if (!IsColor(d_bgcolor.value)){
+		BaseAlert(d_bgcolor,lang["DlgFlashErrBgColor"]);
+		return false;
+	}
+	
+	if (d_checkfromurl.checked){
+		ReturnValue();
+	}else{
+		if (!IsExt(document.myuploadform.uploadfile.value,config.AllowFlashExt)){
+			UploadError("ext");
+			return false;
+		}
+
+		DisableItems();
+		divProcessing.style.display="";
+		document.myuploadform.submit();
+	}
+}
+
+
+function DisableItems(){
+	d_checkfromfile.disabled=true;
+	d_checkfromurl.disabled=true;
+	d_fromurl.disabled=true;
+	if (config.AllowBrowse=="1"){
+		d_browse.disabled=true;
+	}
+	d_bgcolor.disabled=true;
+	d_align.disabled=true;
+	d_width.disabled=true;
+	d_height.disabled=true;
+	d_vspace.disabled=true;
+	d_hspace.disabled=true;
+	d_loop.disabled=true;
+	d_play.disabled=true;
+	d_scale.disabled=true;
+	d_quality.disabled=true;
+	d_menu.disabled=true;
+	d_wmode.disabled=true;
+	d_flashvars.disabled=true;
+	Ok.disabled=true;
+}
+
+
+function AbleItems(){
+	d_checkfromfile.disabled=false;
+	d_checkfromurl.disabled=false;
+	d_fromurl.disabled=false;
+	if (config.AllowBrowse=="1"){
+		d_browse.disabled=false;
+	}
+	d_bgcolor.disabled=false;
+	d_align.disabled=false;
+	d_width.disabled=false;
+	d_height.disabled=false;
+	d_vspace.disabled=false;
+	d_hspace.disabled=false;
+	d_loop.disabled=false;
+	d_play.disabled=false;
+	d_scale.disabled=false;
+	d_quality.disabled=false;
+	d_menu.disabled=false;
+	d_wmode.disabled=false;
+	d_flashvars.disabled=false;
+	Ok.disabled=false;
+}
+
+function doPreview(){
+	var url;
+	if (d_checkfromurl.checked){
+		url = d_fromurl.value;
+		if(config.BaseHref!=""){
+			url = config.BaseHref + url;
+		}
+	}else{
+		url = "file:///" + document.myuploadform.uploadfile.value;
+	}
+	
+	if (url.lastIndexOf(".")<=0){
+		tdPreview.innerHTML = "";
+		return;
+	}
+
+	if (url){
+		tdPreview.innerHTML = "";
+		//var html = "<object classid=\"clsid:d27cdb6e-ae6d-11cf-96b8-444553540000\" codebase=\"http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=9,0,0,0\" width=\"180\" height=\"200\">"
+		//	+"<param name=\"movie\" value=\""+url+"\">"
+		//	+"<param name=\"quality\" value=\"high\">"
+		//	+"<embed src=\""+url+"\" quality=\"high\" width=\"180\" height=\"200\" type=\"application/x-shockwave-flash\" pluginspage=\"http://www.macromedia.com/go/getflashplayer\"></embed>"
+		//	+"</object>";
+		var html = "<embed src=\""+url+"\" quality=\"high\" width=\"180\" height=\"200\" type=\"application/x-shockwave-flash\" pluginspage=\"http://www.macromedia.com/go/getflashplayer\"></embed>";
+		tdPreview.innerHTML = html;
+	}else{
+		tdPreview.innerHTML = "";
+	}
+
+}
+
+
+
+</script>
+
+<BODY onload="InitDocument()">
+<table border=0 cellpadding=0 cellspacing=5 id=tabDialogSize><tr><td>
+
+
+<table border=0 cellpadding=0 cellspacing=5 align=center>
+<tr valign=top><td width="60%">
+
+	<table border=0 cellpadding=0 cellspacing=0 align=center width="100%">
+	<tr>
+		<td>
+		<fieldset>
+		<legend><span lang=DlgImgSource></span></legend>
+		<table border=0 cellpadding=5 cellspacing=0 width="100%">
+		<tr><td>
+
+			<table border=0 cellpadding=0 cellspacing=0 width="300px"><tr><td></td></tr></table>
+			<table border=0 cellpadding=0 cellspacing=2 width="100%">
+			<script type="text/javascript">
+			if (bAllowUpload){
+				document.write("<tr>");
+				document.write("<td noWrap width=\"20%\"><input type=radio id=\"d_checkfromfile\" value=\"1\" onclick=\"RadioClick('file')\"><label for=d_checkfromfile>"+lang["DlgFromFile"]+"</label>:</td>");
+				document.write("<td noWrap width=\"80%\">");
+				document.write(getUploadForm("flash"));
+				document.write("</td>");
+				document.write("</tr>");
+			}
+			</script>
+			<tr>
+				<td noWrap width="20%"><input type=radio id="d_checkfromurl" value="1" onclick="RadioClick('url')"><label for=d_checkfromurl><span lang=DlgFromUrl></span></label>:</td>
+				<td noWrap width="80%">
+				<script type="text/javascript">
+				if (config.AllowBrowse=="1"){
+					document.write("<table border=0 cellpadding=0 cellspacing=0 width='100%'><tr><td width='100%'><input type=text id='d_fromurl' style='width:100%' size=20 value='' onpropertychange=\"if (event.propertyName=='value'){doPreview()}\"></td><td><input class='dlgBtnBrowse' type=button id='d_browse' onclick=\"SelectBrowse('flash','fromurl')\" value='"+lang["DlgBtnBrowse"]+"' align=absmiddle></td></tr></table>");
+				} else {
+					document.write("<input type=text id='d_fromurl' style='width:100%' size=30 value='' onpropertychange=\"if (event.propertyName=='value'){doPreview()}\">");
+				}
+				</script>
+				</td>
+			</tr>
+			</table>
+
+		</td></tr>
+		</table>
+		</fieldset>
+		</td>
+	</tr>
+	<tr><td height=5></td></tr>
+	<tr>
+		<td>
+		<fieldset>
+		<legend><span lang=DlgFlashEffect></span></legend>
+		<table border=0 cellpadding=5 cellspacing=0 width="100%">
+		<tr><td>
+
+			<table border=0 cellpadding=0 cellspacing=2 width="100%">
+			<tr>
+				<td noWrap width="20%"><span lang=DlgFlashPlay></span>:</td>
+				<td noWrap width="29%">
+					<select id=d_play size=1 style="width:80px">
+					<option value='' selected lang=DlgComDefault></option>
+					<option value='true' lang=DlgComYes></option>
+					<option value='false' lang=DlgComNo></option>
+					</select>
+				</td>
+				<td width="2%">&nbsp;</td>
+				<td noWrap width="20%"><span lang=DlgFlashLoop></span>:</td>
+				<td noWrap width="29%">
+					<select id=d_loop size=1 style="width:80px">
+					<option value='' selected lang=DlgComDefault></option>
+					<option value='true' lang=DlgComYes></option>
+					<option value='false' lang=DlgComNo></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td noWrap width="20%"><span lang=DlgFlashMenu></span>:</td>
+				<td noWrap width="29%">
+					<select id=d_menu size=1 style="width:80px">
+					<option value='' selected lang=DlgComDefault></option>
+					<option value='true' lang=DlgComYes></option>
+					<option value='false' lang=DlgComNo></option>
+					</select>
+				</td>
+				<td width="2%">&nbsp;</td>
+				<td noWrap width="20%"><span lang=DlgFlashWMode></span>:</td>
+				<td noWrap width="29%">
+					<select id=d_wmode size=1 style="width:80px">
+					<option value='' selected lang=DlgComDefault></option>
+					<option value='window' lang=DlgFlashWmWindow></option>
+					<option value='opaque' lang=DlgFlashWmOpaque></option>
+					<option value='transparent' lang=DlgFlashWmTransparent></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td noWrap width="20%"><span lang=DlgFlashQuality></span>:</td>
+				<td noWrap width="29%">
+					<select id=d_quality size=1 style="width:80px">
+					<option value='' selected lang=DlgComDefault></option>
+					<option value='low' lang=DlgFlashQuLow></option>
+					<option value='autolow' lang=DlgFlashQuAutoLow></option>
+					<option value='medium' lang=DlgFlashQuMedium></option>
+					<option value='autohigh' lang=DlgFlashQuAutoHigh></option>
+					<option value='high' lang=DlgFlashQuHigh></option>
+					<option value='best' lang=DlgFlashQuBest></option>
+					</select>
+				</td>
+				<td width="2%">&nbsp;</td>
+				<td noWrap width="20%"><span lang=DlgFlashScale></span>:</td>
+				<td noWrap width="29%">
+					<select id=d_scale size=1 style="width:80px">
+					<option value='' selected lang=DlgComDefault></option>
+					<option value='showall' lang=DlgFlashScShowall></option>
+					<option value='noborder' lang=DlgFlashScNoborder></option>
+					<option value='exactfit' lang=DlgFlashScExactfit></option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td noWrap width="20%"><span lang=DlgAlign></span>:</td>
+				<td noWrap width="29%">
+					<select id=d_align size=1 style="width:80px">
+					<option value='' selected lang=DlgComDefault></option>
+					<option value='left' lang=DlgAlignLeft></option>
+					<option value='right' lang=DlgAlignRight></option>
+					<option value='top' lang=DlgAlignTop></option>
+					<option value='middle' lang=DlgAlignMiddle></option>
+					<option value='bottom' lang=DlgAlignBottom></option>
+					<option value='absmiddle' lang=DlgAlignAbsmiddle></option>
+					<option value='absbottom' lang=DlgAlignAbsbottom></option>
+					<option value='baseline' lang=DlgAlignBaseline></option>
+					<option value='texttop' lang=DlgAlignTexttop></option>
+					</select>
+				</td>
+				<td width="2%">&nbsp;</td>
+				<td noWrap width="20%"><span lang=DlgComBgColor></span>:</td>
+				<td noWrap width="29%"><input style="width:62px" type=text id=d_bgcolor size=7 value=""><img border=0 src="../sysimage/rect.gif" width=18 style="cursor:hand" id=s_bgcolor onclick="SelectColor('bgcolor')" align=absmiddle></td>
+			</tr>
+			<tr>
+				<td noWrap width="20%"><span lang=DlgComWidth></span>:</td>
+				<td noWrap width="29%"><input style="width:80px" type=text id=d_width size=10 value="" ONKEYPRESS="event.returnValue=IsDigit();" maxlength=4></td>
+				<td width="2%">&nbsp;</td>
+				<td noWrap width="20%"><span lang=DlgComHeight></span>:</td>
+				<td noWrap width="29%"><input style="width:80px" type=text id=d_height size=10 value="" ONKEYPRESS="event.returnValue=IsDigit();" maxlength=4></td>
+			</tr>
+			<tr>
+				<td noWrap width="20%"><span lang=DlgComVSpace></span>:</td>
+				<td noWrap width="29%"><input style="width:80px" type=text id=d_vspace size=10 value="" ONKEYPRESS="event.returnValue=IsDigit();" maxlength=2></td>
+				<td width="2%">&nbsp;</td>
+				<td noWrap width="20%"><span lang=DlgComHSpace></span>:</td>
+				<td noWrap width="29%"><input style="width:80px" type=text id=d_hspace size=10 value="" ONKEYPRESS="event.returnValue=IsDigit();" maxlength=2></td>
+			</tr>
+			<tr>
+				<td noWrap width="20%"><span lang=DlgFlashVars title="FlashVars"></span>:</td>
+				<td noWrap width="80%" colspan=4><input type=text id=d_flashvars size=10 style="width:100%"></td>
+			</tr>
+
+			</table>
+
+		</td></tr>
+		</table>
+		</fieldset>
+		</td>
+	</tr>
+	</table>
+
+
+</td><td width="40%" height="100%">
+	
+		<fieldset style="height:100%">
+		<legend><span lang=DlgComPreview></span></legend>
+		<table border=0 cellpadding=0 cellspacing=5 width="200" height="240" valign=top id=tablePreview>
+		<tr><td colspan=2 bgcolor=#FFFFFF align=center valign=middle id=tdPreview height="100%">
+
+		</td></tr>
+		<tr><td id=tdPreviewSize></td><td align=right><input type=button id=btnPreivew onclick="doPreview()" lang=DlgComPreview></td></tr>
+		</table>
+		</fieldset>
+
+</td></tr>
+<tr><td noWrap align=right colspan=2><input type=submit class="dlgBtnCommon" value='' id=Ok onclick="ok()" lang=DlgBtnOK>&nbsp;&nbsp;<input type=button class="dlgBtnCommon" value='' onclick="window.close();" lang=DlgBtnCancel></td></tr>
+</table>
+
+
+</td></tr></table>
+
+
+<div id=divProcessing style="width:200px;height:30px;position:absolute;left:70px;top:100px;display:none">
+<table border=0 cellpadding=0 cellspacing=1 bgcolor="#000000" width="100%" height="100%"><tr><td bgcolor=#3A6EA5><marquee align="middle" behavior="alternate" scrollamount="5"><font color=#FFFFFF><span lang=DlgComUploading></span></font></marquee></td></tr></table>
+</div>
+
+</body>
+</html>

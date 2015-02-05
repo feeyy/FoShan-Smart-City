@@ -1,0 +1,258 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312">
+<script type="text/javascript" src="dialog.js"></script>
+
+<script type="text/javascript">
+document.write ("<link href='../skin/" + config.Skin + "/dialog.css' type='text/css' rel='stylesheet'>");
+
+var sAction = URLParams["action"] ;
+var s_SubTitle = "";
+if (sAction=="paste"){
+	s_SubTitle = "("+lang["DlgWordPaste"]+")";
+}
+
+document.write ("<title>" + lang["DlgWord"] + s_SubTitle + "</title>");
+
+
+var eWebEditorActiveX;
+
+function ok(){
+	if (!dialogArguments.CheckActiveXVersion()){
+		var arr = showModalDialog("installactivex.htm", dialogArguments, "dialogWidth:0px;dialogHeight:0px;help:no;scroll:no;status:no");
+		return;
+	}
+	
+	var s_File = ""
+	if (sAction!="paste"){
+		s_File = d_file.value;
+		if (!IsExt(s_File, "doc")){
+			alert(lang["DlgWordInvalidFile"]);
+			return;
+		}
+	}
+	
+	var n_OptimizeMode = 1;
+	if (d_opt2.checked){
+		n_OptimizeMode = 2;
+	}
+
+	var b_opt1vml = d_opt1vml.checked;
+	var b_opt1absolute = d_opt1absolute.checked;
+	var b_opt1eq = d_opt1eq.checked;
+	var b_opt1margin = d_opt1margin.checked;
+	var b_opt1space = d_opt1space.checked;
+
+	var b_opt2image = d_opt2image.checked;
+	var b_opt2table = d_opt2table.checked;
+	var b_opt2eq = d_opt2eq.checked;
+	var b_opt2indent = d_opt2indent.checked;
+	var b_opt2ptobr = d_opt2ptobr.checked;
+
+	var s_PostUrl = getSitePath() + getWebEditorRootPath() + "/" + config.ServerExt + "/upload." + config.ServerExt + "?action=local&type=local&style=" + config.StyleName + "&cusdir=" + config.CusDir;
+
+	divProcessing.style.display="";
+
+	if (eWebEditorActiveX){eWebEditorActiveX=null}
+	eWebEditorActiveX = new ActiveXObject("eWebEditorClient.eWebEditor");
+	if (sAction!="paste"){
+		eWebEditorActiveX.ImportWord(s_File, s_PostUrl, n_OptimizeMode, b_opt1vml, b_opt1absolute, b_opt1eq, b_opt1margin, b_opt1space, b_opt2image, b_opt2table, b_opt2eq, b_opt2indent, b_opt2ptobr);
+	}else{
+		eWebEditorActiveX.PasteWord(s_PostUrl, n_OptimizeMode, b_opt1vml, b_opt1absolute, b_opt1eq, b_opt1margin, b_opt1space, b_opt2image, b_opt2table, b_opt2eq, b_opt2indent, b_opt2ptobr);
+	}
+	
+	window.setTimeout("CheckActiveXStatus()", 100);
+}
+
+function CheckActiveXStatus(){
+	if (eWebEditorActiveX.Status!="ok"){
+		window.setTimeout("CheckActiveXStatus()", 100);
+		return;
+	}
+
+	var s_Error = eWebEditorActiveX.Error;
+	if (s_Error!=""){
+		var s_ErrorCode = s_Error.substring(0,s_Error.indexOf(":"));
+		switch(s_ErrorCode){
+		case "InvalidFile":
+			alert(lang["DlgWordInvalidFile"]);
+			break;
+		default:
+			alert(s_Error);
+		}
+		divProcessing.style.display="none";
+		return;
+	}
+
+	var s_Style = eWebEditorActiveX.Style;
+	if (d_opt2.checked){
+		s_Style = "";
+	}
+
+	var s_Body = eWebEditorActiveX.Body;
+
+	var s_OriginalFiles = eWebEditorActiveX.OriginalFiles;
+	var s_SavedFiles = eWebEditorActiveX.SavedFiles;
+	if (s_OriginalFiles){
+		var a_Original = s_OriginalFiles.split("|");
+		var a_Saved = s_SavedFiles.split("|");
+		for (var i=0; i<a_Original.length; i++){
+			if (a_Saved[i]){
+				var s_OriginalFileName = a_Original[i];
+				var s_SaveFileName = a_Saved[i].substr(a_Saved[i].lastIndexOf("/")+1);
+				var s_SavePathFileName = a_Saved[i];
+				dialogArguments.addUploadFile(s_OriginalFileName, s_SaveFileName, s_SavePathFileName);
+			}
+		}
+	}
+	
+	if (d_pos.checked){
+		dialogArguments.setHTML(s_Style + s_Body, true);
+	}else{
+		var s_TempTag = "<SPAN id=eWebEditorTempInsertTag></SPAN>";
+		dialogArguments.insertHTML(s_TempTag);
+		var s_Source=dialogArguments.getHTML();
+		var n1 = s_Source.indexOf(s_TempTag);
+		var s_HTML=s_Style+s_Source.substring(0,n1)+s_Body+s_Source.substr(n1+s_TempTag.length);
+		dialogArguments.setHTML(s_HTML, true);
+	}
+	
+	eWebEditorActiveX = null;
+	divProcessing.style.display="none";
+
+	window.returnValue = null;
+	window.close();
+}
+
+
+function clickOpt(index){
+	var el_group,els;
+	
+	for (var i=1; i<=2; i++){
+		el_group = document.getElementById("group_opt"+i);
+		els = el_group.getElementsByTagName("INPUT");
+		for (var j=0; j<els.length; j++){
+			if (index==i){
+				els[j].disabled=false;
+			}else{
+				els[j].disabled=true;
+			}
+		}
+
+		els = el_group.getElementsByTagName("SPAN");
+		for (var j=0; j<els.length; j++){
+			if (index==i){
+				els[j].disabled=false;
+			}else{
+				els[j].disabled=true;
+			}
+		}
+	}
+}
+
+function doClickOpt2PtoBr(obj){
+	if (obj.checked){
+		document.getElementById("d_opt2indent").checked=false;
+	}
+}
+
+function doClickOpt2Indent(obj){
+	if (obj.checked){
+		document.getElementById("d_opt2ptobr").checked=false;
+	}
+}
+
+function InitDocument(){
+	lang.TranslatePage(document);
+	adjustDialog();
+	clickOpt(1);
+	if (sAction=="paste"){
+		document.getElementById("d_pos").checked=false;
+	}
+	adjustProcessingPos();
+}
+
+function adjustProcessingPos(){
+	var el = document.getElementById("divProcessing");
+	el.style.left = (tabDialogSize.offsetWidth+6-parseInt(el.style.width))/2 + "px";
+	el.style.top = (tabDialogSize.offsetHeight-parseInt(el.style.height))/2 + "px";
+}
+
+</script>
+
+
+<BODY onload="InitDocument()">
+
+
+<table border=0 cellpadding=0 cellspacing=5 id=tabDialogSize><tr><td>
+
+<table border=0 cellpadding=0 cellspacing=0 align=center>
+<script type="text/javascript">
+if (sAction!="paste"){
+	document.write("<tr>");
+	document.write("	<td>");
+	document.write("	<fieldset>");
+	document.write("	<legend><span lang=DlgWordFile></span>:</legend>");
+	document.write("	<table border=0 cellpadding=5 cellspacing=0 width='100%'>");
+	document.write("	<tr><td><input type=file id=d_file size=30 style='width:100%'></td></tr>");
+	document.write("	</table>");
+	document.write("	</fieldset>");
+	document.write("	</td>");
+	document.write("</tr>");
+	document.write("<tr><td height=5></td></tr>");
+}
+</script>
+
+<tr>
+	<td>
+	<fieldset>
+	<legend><span lang=DlgWordOptimize></span>:</legend>
+	<table border=0 cellpadding=5 cellspacing=0 width="100%">
+	<tr><td>
+		<table border=0 cellpadding=0 cellspacing=3>
+		<tr><td colspan=6><input type=radio name="d_optimize" id="d_opt1" checked onclick="clickOpt(1)"><label for=d_opt1><span lang=DlgWordOpt1></span></label></td></tr>
+		<tr id=group_opt1>
+			<td>&nbsp;&nbsp;&nbsp; </td>
+			<td noWrap><input type=checkbox id=d_opt1vml checked><label for=d_opt1vml><span lang=DlgWordOpt1VML></span></label></td>
+			<td noWrap><input type=checkbox id=d_opt1absolute checked><label for=d_opt1absolute><span lang=DlgWordOpt1Absolute></span></label></td>
+			<td noWrap><input type=checkbox id=d_opt1eq checked><label for=d_opt1eq><span lang=DlgWordOpt1EQ></span></label></td>
+			<td noWrap><input type=checkbox id=d_opt1margin checked><label for=d_opt1margin><span lang=DlgWordOpt1Margin></span></label></td>
+			<td noWrap><input type=checkbox id=d_opt1space><label for=d_opt1space><span lang=DlgWordOpt1Space></span></label></td>
+		</tr>
+		<tr><td colspan=6><input type=radio name="d_optimize" id="d_opt2" onclick="clickOpt(2)"><label for=d_opt2><span lang=DlgWordOpt2></span></label></td></tr>
+		<tr id=group_opt2>
+			<td>&nbsp; </td>
+			<td noWrap><input type=checkbox id=d_opt2image checked><label for=d_opt2image><span lang=DlgWordOpt2Image></span></label></td>
+			<td noWrap><input type=checkbox id=d_opt2table checked><label for=d_opt2table><span lang=DlgWordOpt2Table></span></label></td>
+			<td noWrap><input type=checkbox id=d_opt2eq checked><label for=d_opt2eq><span lang=DlgWordOpt2EQ></span></label></td>
+			<td noWrap><input type=checkbox id=d_opt2indent onclick="doClickOpt2Indent(this)"><label for=d_opt2indent><span lang=DlgWordOpt2Indent></span></label></td>
+			<td noWrap><input type=checkbox id=d_opt2ptobr onclick="doClickOpt2PtoBr(this)"><label for=d_opt2ptobr><span lang=DlgWordOpt2PtoBR></span></label></td>
+		</tr>
+		</table>
+	</td></tr>
+	</table>
+	</fieldset>
+	</td>
+</tr>
+
+<tr><td height=5></td></tr>
+<tr>
+	<td>
+	<table border=0 cellpadding=0 cellspacing=0 width="100%">
+	<tr>
+		<td noWrap><input type=checkbox id=d_pos checked><label for=d_pos><span lang=DlgComInsertReplace></span></label></td>
+		<td noWrap align=right><input type=submit class="dlgBtnCommon" value='' id=Ok onclick="ok()" lang=DlgBtnOK>&nbsp;&nbsp;<input type=button class="dlgBtnCommon" value='' onclick="window.close();" lang=DlgBtnCancel>
+	</tr>
+	</table>
+	</td>
+</tr>
+</table>
+
+</td></tr></table>
+
+<div id=divProcessing style="width:200px;height:30px;position:absolute;left:50px;top:30px;display:none">
+<table border=0 cellpadding=0 cellspacing=1 bgcolor="#000000" width="100%" height="100%"><tr><td bgcolor=#3A6EA5 align=center><marquee align="middle" behavior="alternate" scrollamount="5"><font color=#FFFFFF><span lang=DlgWordImporting></span></font></marquee></td></tr></table>
+</div>
+
+</body>
+</html>

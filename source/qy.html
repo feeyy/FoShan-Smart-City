@@ -1,0 +1,429 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+<meta charset="gb2312">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1 ,maximum-scale=1, user-scalable=no">
+<title>佛山智慧新城-企业</title>
+<link rel="stylesheet" href="css/idangerous.swiper.css">
+<link rel="stylesheet" href="css/idangerous.swiper.scrollbar.css">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="for_bg">
+  <div id="dh"><img src="img/dh2.png" width="447" height="64" border="0" usemap="#Map">
+    <map name="Map">
+      <area shape="rect" coords="5,4,189,61" href="index.html" onFocus="blur();">
+    </map>
+  </div>
+  <div id="qy-serch">
+    <div class="bigtxt">搜索</div>
+    <div class="small">点击搜索企业</div>
+  </div>
+  <div id="serch-neir">
+    <div class="abclist">
+      <ul>
+        <a href="javascript:serch('A')">
+        <li id="k-A">A</li>
+        </a> <a href="javascript:serch('B')">
+        <li id="k-B">B</li>
+        </a> <a href="javascript:serch('C')">
+        <li id="k-C">C</li>
+        </a> <a href="javascript:serch('D')">
+        <li id="k-D">D</li>
+        </a> <a href="javascript:serch('E')">
+        <li id="k-E">E</li>
+        </a> <a href="javascript:serch('F')">
+        <li id="k-F">F</li>
+        </a> <a href="javascript:serch('G')">
+        <li id="k-G">G</li>
+        </a> <a href="javascript:serch('H')">
+        <li id="k-H">H</li>
+        </a> <a href="javascript:serch('I')">
+        <li id="k-I">I</li>
+        </a> <a href="javascript:serch('J')">
+        <li id="k-J">J</li>
+        </a> <a href="javascript:serch('K')">
+        <li id="k-K">K</li>
+        </a> <a href="javascript:serch('L')">
+        <li id="k-L">L</li>
+        </a> <a href="javascript:serch('M')">
+        <li id="k-M">M</li>
+        </a> <a href="javascript:serch('N')">
+        <li id="k-N">N</li>
+        </a> <a href="javascript:serch('O')">
+        <li id="k-O">O</li>
+        </a> <a href="javascript:serch('P')">
+        <li id="k-P">P</li>
+        </a> <a href="javascript:serch('Q')">
+        <li id="k-Q">Q</li>
+        </a> <a href="javascript:serch('R')">
+        <li id="k-R">R</li>
+        </a> <a href="javascript:serch('S')">
+        <li id="k-S">S</li>
+        </a> <a href="javascript:serch('T')">
+        <li id="k-T">T</li>
+        </a> <a href="javascript:serch('U')">
+        <li id="k-U">U</li>
+        </a> <a href="javascript:serch('V')">
+        <li id="k-V">V</li>
+        </a> <a href="javascript:serch('W')">
+        <li id="k-W">W</li>
+        </a> <a href="javascript:serch('X')">
+        <li id="k-X">X</li>
+        </a> <a href="javascript:serch('Y')">
+        <li id="k-Y">Y</li>
+        </a> <a href="javascript:serch('Z')">
+        <li id="k-Z">Z</li>
+        </a>
+      </ul>
+    </div>
+  </div>
+  <div id="lc_choose">
+    <div class="bigtxt">T5栋</div>
+    <div class="small">点击更换楼宇</div>
+  </div>
+  <div id="lc_choose_list">
+    <div id="lc_choose_neir">
+      <div class="choose-container">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide">
+            <ul id="ly-data">
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="choose-scrollbar"></div>
+    </div>
+  </div>
+  <div id="lc_list">
+    <div class="pageUp"></div>
+    <div class="pageDown"></div>
+    <div class="list">
+      <div class="swiper-container">
+        <div id="lc-data" class="swiper-wrapper"> </div>
+      </div>
+    </div>
+    <div class="swiper-scrollbar"></div>
+  </div>
+  <div class="pageUp-qy"></div>
+  <div class="pageDown-qy"></div>
+  <div id="qy-list">
+    <div class="qy-container">
+      <div  id="qy-data" class="swiper-wrapper">
+      </div>
+    </div>
+    <div class="qy-pagination"></div>
+  </div>
+  <div id="zcinfo"></div>
+</div>
+<script type="text/javascript" src="js/jquery.js" ></script> 
+<script type="text/javascript" src="js/idangerous.swiper-2.0.min.js"></script> 
+<script type="text/javascript" src="js/idangerous.swiper.scrollbar-2.0.js"></script> 
+<script type="text/javascript" src="js/JSON.js" ></script> 
+<script type="text/javascript" src="js/config.js" ></script>
+<script>
+//开始加载
+$(document).ready(function() {
+  //禁止右键
+  $(document).bind("contextmenu",
+  function() {
+    return false;
+  });
+  $(document).bind("selectstart",
+  function() {
+    return false;
+  });
+
+  $.ajaxSetup({
+    async: false
+  });
+  //设置为同步，否则滑动事件被提前执行导致渲染失败！
+  
+  //加载系统参数
+  getconfig();
+  
+  //加载楼宇数据
+  getly();
+
+  //加载楼层数据
+  choosely(inily);
+  
+
+  //隐藏楼宇下拉列表
+  $("#lc_choose_list").hide();
+  //隐藏企业搜索
+  $("#serch-neir").hide();
+
+  $("#lc_choose").click(function() {
+    $("#lc_choose_list").toggle();
+    $("#serch-neir").hide();
+  });
+
+  //点击搜索按钮
+  $("#qy-serch").click(function() {
+    $("#serch-neir").toggle();
+    $("#lc_choose_list").hide();
+  });
+
+});
+
+//获取楼宇数据
+function getly() {
+  var lyhtml = $("#ly-data");
+
+  $.ajax({
+    url: "appserver/data_ajax.asp?ac=getly",
+    beforeSend: function() {
+      lyhtml.html("<li><span class=\"small\">加载中...</span></li>");
+    },
+    success: function(data, textStatus) {
+      var dd = JSON.decode(data);
+      var rs = dd.result;
+      if (rs == "0") {
+        lyhtml.html("<li><span class=\"small\">暂无信息！</span></li>");
+      } else {
+        var lynum = dd.ly.length;
+        var temhtml = "";
+        for (i = 0; i < lynum; i++) {
+          temhtml += "<a href=\"javascript:choosely('" + dd.ly[i] + "')\"><li>" + dd.ly[i] + "<span class=\"small\">栋</span></li></a>";
+        }
+        lyhtml.html(temhtml);
+		 //执行滑动事件
+      lyhuadong();
+      }
+    },
+    complete: function() {},
+    error: function() {
+      lyhtml.html("<li><span class=\"small\">请求失败！</span></li>");
+    }
+  });
+
+ 
+ 
+
+}
+
+//获取楼层数据
+function getlc(ly) {
+  var lchtml = $("#lc-data");
+
+  $.ajax({
+    url: "appserver/data_ajax.asp?ac=getlc&ly=" + ly,
+    beforeSend: function() {
+      lchtml.html("<div class=\"swiper-slide lc1\"><a><span class=\"small\">加载中...</span></a></div>");
+    },
+    success: function(data, textStatus) {
+      var dd = JSON.decode(data);
+      var rs = dd.result;
+      if (rs == "0") {
+        lchtml.html("<div class=\"swiper-slide lc1\"><a><span class=\"small\">暂无信息！</span></a></div>");
+      } else {
+        var lcnum = dd.lc.length;
+        var temhtml = "";
+        for (var i = 0; i < lcnum; i++) {
+          temhtml += "<div id=\"lc-" + dd.lc[i].id + "\" class=\"swiper-slide lc1\"><a href=\"javascript:chooselc(" + dd.lc[i].id + ")\">" + dd.lc[i].lc + "<span class=\"small\">F</span></a></div>";
+        }
+        lchtml.html(temhtml);
+		//执行滑动事件
+        lchuadong();
+      }
+    },
+    complete: function() {},
+    error: function() {
+      lchtml.html("<div class=\"swiper-slide lc1\"><a><span class=\"small\">请求失败！</span></a></div>");
+    }
+  });
+
+  
+
+  //自动点击第一个楼层
+  //var div1 = $("#lc-data div");
+ // var n1 = div1.first().attr("id");
+  //var n2 = n1.split("-")[1];
+ // chooselc(n2);
+ 
+  //自动加载整栋楼的企业信息
+  getqy("getall",ly);
+
+  
+}
+
+//按获取企业数据
+function getqy(g, l) {
+  var qyhtml = $("#qy-data");
+  var dataurl = "";
+  if (g == "other") {
+    $.post("appserver/data_ajax.asp?ac=getqy&lc=" + l);
+    dataurl = "appserver/qy.json";
+  } else if(g == "getall") {
+	  $.post("appserver/data_ajax.asp?ac=getqyall&ly=" + l);
+    dataurl = "appserver/qy.json";
+	  }else{
+    $.post("appserver/data_ajax.asp?ac=serchqy&skey=" + l);
+    dataurl = "appserver/qy-serch.json";
+  }
+
+  $.ajax({
+    url: dataurl,
+    //url:"appserver/data_ajax.asp?ac=getqy&lc="+lc,
+    beforeSend: function() {
+      qyhtml.html("<div class=\"swiper-slide\"><ul><li><div class=\"neir\"><a>正在加载...</a></div></li></ul></div>");
+    },
+    success: function(data, textStatus) {
+      var dd = JSON.decode(data);
+      //var dd=eval('('+data+')');
+      var rs = dd.result;
+      if (rs == "0") {
+        qyhtml.html("<div class=\"swiper-slide\"><ul><li><div class=\"neir\"><a>暂无信息！</a></div></li></ul></div>");
+      } else {
+        var temhtml = "";
+        var tt = dd.qy.length; //总数
+        var yy = 9; //每页多少个
+		
+        var pp = parseInt(tt / yy) + 1;
+		if(tt%yy==0){
+			pp=tt/yy;
+			}
+		
+        var d = 0;
+
+        for (var j = 0; j < pp; j++) {
+
+          temhtml += "<div class=\"swiper-slide\"><ul>";
+
+          for (var i = 0; i < yy; i++) {
+            d += 1;
+            if (d > tt) {
+              break
+            }
+            var logo = dd.qy[d - 1].qylogo;
+            var name = dd.qy[d - 1].qyname;
+			var ly = dd.qy[d - 1].qyly;
+			var lc = dd.qy[d - 1].qylc;
+            name = name.substr(0, 9);
+            //截取企业名字前9个字符
+            var id = dd.qy[d - 1].id;
+            if (logo == "") {
+              temhtml += "<li><div class=\"lcts\">"+ly+"</div><div class=\"lcts1\">"+lc+"F</div><div class=\"neir\"><a href=\"qy-read.html?id=" + id + "\">" + name + "</a></div></li>";
+            } else {
+              temhtml += "<li><div class=\"lcts\">"+ly+"</div><div class=\"lcts1\">"+lc+"F</div><div class=\"neir\"><a href=\"qy-read.html?id=" + id + "\"><img src=\"" + logo + "\" width=\"240\" height=\"130\"></a></div></li>";	  
+            }
+          }
+          temhtml += "</ul></div>";
+			
+        }
+        qyhtml.html(temhtml);
+		  //执行滑动事件
+       qyhuadong();
+      }
+    },
+    complete: function() {},
+    error: function() {
+      qyhtml.html("<div class=\"swiper-slide\"><ul><li><div class=\"neir\"><a>请求失败！</a></div></li></ul></div>");
+    }
+  });
+
+  
+ 
+}
+
+//更变楼宇选择
+function choosely(n) {
+  var ly = n;
+  $("#lc_choose .bigtxt").html(ly + "栋");
+  $("#lc_choose_list").hide();
+
+  getlc(ly);
+  
+}
+
+//改变楼层选择
+function chooselc(n) {
+  var lc = n;
+  $("div[id^='lc-']").removeClass("ac");
+  $("#lc-" + lc).addClass("ac");
+
+  getqy("other", lc);
+
+}
+
+//首字母搜索
+function serch(s) {
+
+  $("li[id^='k-']").removeClass("ac");
+  $("#k-" + s).addClass("ac");
+  getqy("g", s);
+
+}
+
+function qyhuadong(){
+	 //入驻企业列表滑动
+  var mySwiper2 = new Swiper('.qy-container', {
+    slidesPerView: 1,
+    mousewheelControl: true,
+    //loop: true,
+    //autoplay:8000,
+    //Enable Scrollbar
+    pagination: '.qy-pagination',
+    paginationClickable: true
+  });
+  $('.pageUp-qy').on('click',
+  function(e) {
+    e.preventDefault(); 
+	mySwiper2.swipePrev()
+  });
+  $('.pageDown-qy').on('click',
+  function(e) {
+    e.preventDefault();
+	mySwiper2.swipeNext()
+  });
+	}
+	
+	
+function lchuadong(){
+	 //楼层选择滑动
+  var mySwiper1 = new Swiper('.swiper-container', {
+    slidesPerView: 7,
+    mousewheelControl: true,
+    //Enable Scrollbar
+    scrollbar: {
+      container: '.swiper-scrollbar',
+      hide: false,
+      draggable: true,
+      snapOnRelease: true
+    }
+
+  });
+
+  $('.pageUp').on('click',
+  function(e) {
+    e.preventDefault();
+    mySwiper1.swipePrev();
+  });
+  $('.pageDown').on('click',
+  function(e) {
+    e.preventDefault();
+    mySwiper1.swipeNext();
+  });
+	}
+	
+function lyhuadong(){
+	
+	 //更换楼宇滑动
+  var mySwiper3 = new Swiper('.choose-container', {
+    scrollContainer: true,
+    mousewheelControl: true,
+    mode: 'vertical',
+    //Enable Scrollbar
+    scrollbar: {
+      container: '.choose-scrollbar',
+      hide: true,
+      draggable: false
+    }
+  });
+	}
+
+</script>
+</body>
+</html>

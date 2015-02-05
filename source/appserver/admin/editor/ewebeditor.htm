@@ -1,0 +1,26 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<title>eWebEditor</title>
+<script type="text/javascript" src="js/buttons.js"></script>
+<script type="text/javascript" src="js/ewebeditor.js"></script>
+
+<script type="text/javascript">
+LoadScript("style/" + myParam.StyleName + ".js");
+LoadScript("js/zh-cn.js");
+</script>
+
+<script type="text/javascript">
+myEditor_Init();
+document.write ("<link href='" + myEditor.RootPath + "/skin/" + config.Skin + "/editor.css' type='text/css' rel='stylesheet'>");
+</script>
+
+</head>
+<body scrolling=no>
+
+<script type="text/javascript">
+showEditorBody();
+</script>
+
+</body>
+</html>

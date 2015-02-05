@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+<meta charset="gb2312">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1 ,maximum-scale=1, user-scalable=no">
+<title>佛山智慧新城-楼层</title>
+<link rel="stylesheet" href="css/idangerous.swiper.css">
+<link rel="stylesheet" href="css/idangerous.swiper.scrollbar.css">
+<link rel="stylesheet" href="css/jquery.iviewer.css" />
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="for_bg">
+  <div id="dh"><img src="img/dh1.png" width="447" height="64" border="0" usemap="#Map">
+    <map name="Map">
+      <area shape="rect" coords="5,4,189,61" href="index.html" onFocus="blur();">
+    </map>
+  </div>
+  <div id="lc_choose">
+    <div class="bigtxt">T5栋</div>
+    <div class="small">点击更换楼宇</div>
+  </div>
+  <div id="lc_choose_list">
+    <div id="lc_choose_neir">
+      <div class="choose-container">
+        <div class="swiper-wrapper">
+          <div class="swiper-slide">
+            <ul id="ly-data">
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="choose-scrollbar"></div>
+    </div>
+  </div>
+  <div id="lc_list">
+    <div class="pageUp"></div>
+    <div class="pageDown"></div>
+    <div class="list">
+      <div class="swiper-container">
+        <div id="lc-data" class="swiper-wrapper">
+        
+        </div>
+      </div>
+    </div>
+    <div class="swiper-scrollbar"></div>
+  </div>
+  <div id="ruzhu"><img src="img/ruzhu.png" width="340" height="77" border="0"></div>
+  <div id="rz-list">
+    <div class="ruzhu-container">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide">
+          <ul id="qy-data">
+            <a>
+            <li>请点击上面的楼层按钮查看入驻企业!</li>
+            </a>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="ruzhu-scrollbar"></div>
+  </div>
+  <div id="tishi"><img src="img/tishi.png" width="329" height="43" border="0"></div>
+  <div id="lc-map">
+    <div class="title"><span id="f-num">2F</span><span class="small">楼层布局图</span></div>
+    <div class="map"></div>
+  </div>
+  <div id="zcinfo"></div>
+</div>
+<script type="text/javascript" src="js/jquery.js" ></script> 
+<script type="text/javascript" src="js/idangerous.swiper-2.0.min.js"></script> 
+<script type="text/javascript" src="js/idangerous.swiper.scrollbar-2.0.js"></script> 
+<script type="text/javascript" src="js/jqueryui.js" ></script> 
+<script type="text/javascript" src="js/jquery.mousewheel.min.js" ></script> 
+<script type="text/javascript" src="js/jquery.iviewer.js" ></script> 
+<script type="text/javascript" src="js/JSON.js" ></script> 
+<script type="text/javascript" src="js/config.js" ></script>
+<script>
+//开始加载
+$(document).ready(function() {
+  //禁止右键
+  $(document).bind("contextmenu",
+  function() {
+    return false;
+  });
+  $(document).bind("selectstart",
+  function() {
+    return false;
+  });
+
+  
+
+  $.ajaxSetup({
+    async: false
+  });
+  //设置为同步，否则滑动事件被提前执行导致渲染失败！
+  
+   //加载系统参数
+  getconfig();
+  
+  //加载楼宇数据
+  getly();
+
+  //加载楼层数据
+  choosely(inily);
+
+  $("#lc_choose").click(function() {
+    $("#lc_choose_list").toggle();
+  });
+
+  $("#lc_choose_list").hide();
+  
+  //加载地图
+  var iv2 = $(".map").iviewer({
+    src: mappic
+  });
+
+
+});
+
+//获取楼宇数据
+function getly() {
+  var lyhtml = $("#ly-data");
+
+  $.ajax({
+    url: "appserver/data_ajax.asp?ac=getly",
+    beforeSend: function() {
+      lyhtml.html("<li><span class=\"small\">加载中...</span></li>");
+    },
+    success: function(data, textStatus) {
+      var dd = JSON.decode(data);
+      var rs = dd.result;
+      if (rs == "0") {
+        lyhtml.html("<li><span class=\"small\">暂无信息！</span></li>");
+      } else {
+        var lynum = dd.ly.length;
+        var temhtml = "";
+        for (i = 0; i < lynum; i++) {
+          temhtml += "<a href=\"javascript:choosely('" + dd.ly[i] + "')\"><li>" + dd.ly[i] + "<span class=\"small\">栋</span></li></a>";
+        }
+        lyhtml.html(temhtml);
+      }
+    },
+    complete: function() {},
+    error: function() {
+      lyhtml.html("<li><span class=\"small\">请求失败！</span></li>");
+    }
+  });
+
+  //执行滑动事件
+  //更换楼宇滑动
+  var mySwiper3 = new Swiper('.choose-container', {
+    scrollContainer: true,
+    mousewheelControl: true,
+    mode: 'vertical',
+    //Enable Scrollbar
+    scrollbar: {
+      container: '.choose-scrollbar',
+      hide: true,
+      draggable: false
+    }
+  });
+
+}
+
+//获取楼层数据
+function getlc(ly) {
+  var lchtml = $("#lc-data");
+
+  $.ajax({
+    url: "appserver/data_ajax.asp?ac=getlc&ly=" + ly,
+    beforeSend: function() {
+      lchtml.html("<div class=\"swiper-slide lc1\"><a><span class=\"small\">加载中...</span></a></div>");
+    },
+    success: function(data, textStatus) {
+      var dd = JSON.decode(data);
+      var rs = dd.result;
+      if (rs == "0") {
+        lchtml.html("<div class=\"swiper-slide lc1\"><a><span class=\"small\">暂无信息！</span></a></div>");
+      } else {
+        var lcnum = dd.lc.length;
+        var temhtml = "";
+        for (var i = 0; i < lcnum; i++) {
+          temhtml += "<div id=\"lc-" + dd.lc[i].id + "\" class=\"swiper-slide lc1\"><a href=\"javascript:chooselc(" + dd.lc[i].id + ")\">" + dd.lc[i].lc + "<span class=\"small\">F</span></a></div>";
+        }
+        lchtml.html(temhtml);
+      }
+    },
+    complete: function() {},
+    error: function() {
+      lchtml.html("<div class=\"swiper-slide lc1\"><a><span class=\"small\">请求失败！</span></a></div>");
+    }
+  });
+
+  //执行滑动事件
+  //楼层选择滑动
+  var mySwiper1 = new Swiper('.swiper-container', {
+    slidesPerView: 7,
+    mousewheelControl: true,
+    //Enable Scrollbar
+    scrollbar: {
+      container: '.swiper-scrollbar',
+      hide: false,
+      draggable: true,
+      snapOnRelease: true
+    }
+
+  });
+
+  $('.pageUp').on('click',
+  function(e) {
+    e.preventDefault();
+    mySwiper1.swipePrev();
+  });
+  $('.pageDown').on('click',
+  function(e) {
+    e.preventDefault();
+    mySwiper1.swipeNext();
+  });
+
+  //自动点击第一个楼层
+  var div1 = $("#lc-data div");
+  var n1 = div1.first().attr("id");
+  var n2 = n1.split("-")[1];
+  chooselc(n2);
+
+}
+
+//获取企业数据
+function getqy(lc) {
+  var qyhtml = $("#qy-data");
+
+  $.post("appserver/data_ajax.asp?ac=getqy&lc=" + lc);
+
+  $.ajax({
+    url: "appserver/qy.json",
+    //url:"appserver/data_ajax.asp?ac=getqy&lc="+lc,
+    beforeSend: function() {
+      qyhtml.html("<a><li>正在加载...</li></a>");
+    },
+    success: function(data, textStatus) {
+      var dd = JSON.decode(data);
+      //var dd=eval('('+data+')');
+      var rs = dd.result;
+      if (rs == "0") {
+        qyhtml.html("<a><li>暂无信息！</li></a>");
+      } else {
+        var tt = dd.qy.length;
+        var temhtml = "";
+        for (i = 0; i < dd.qy.length; i++) {
+          temhtml += "<a href=\"qy-read.html?id=" + dd.qy[i].id + "\"><li>" + dd.qy[i].qyname + "</li></a>";
+        }
+        qyhtml.html(temhtml);
+      }
+    },
+    complete: function() {},
+    error: function() {
+      qyhtml.html("<a><li>请求失败！</li></a>");
+    }
+  });
+
+  //执行滑动事件
+  //入驻企业滑动
+  var mySwiper2 = new Swiper('.ruzhu-container', {
+    scrollContainer: true,
+    mousewheelControl: true,
+    mode: 'vertical',
+    //Enable Scrollbar
+    scrollbar: {
+      container: '.ruzhu-scrollbar',
+      hide: true,
+      draggable: true
+    }
+  });
+
+}
+
+var mappic="";
+//获取楼层地图数据
+function getmap(lc) {
+
+  $.ajax({
+    url: "appserver/data_ajax.asp?ac=getmap&lc=" + lc,
+    beforeSend: function() {
+      //$(".map").html("加载中...");
+    },
+    success: function(data, textStatus) {
+      var dd = JSON.decode(data);
+	  mappic=dd.mappic;
+      $("#lc_choose_list").hide();
+      $(".map img").attr("src", mappic);
+      $("#f-num").html(dd.lc + "F");
+    },
+    complete: function() {},
+    error: function() {
+		mappic="img/map.jpg";
+      $(".map img").attr("src", "img/map.jpg");
+    }
+  });
+
+}
+
+//更变楼宇选择
+function choosely(n) {
+  var ly = n;
+  $(".bigtxt").html(ly + "栋");
+  $("#lc_choose_list").hide();
+
+  getlc(ly);
+}
+
+//改变楼层选择
+function chooselc(n) {
+  var lc = n;
+  $("div[id^='lc-']").removeClass("ac");
+  $("#lc-" + lc).addClass("ac");
+
+  getqy(lc);
+  getmap(lc);
+
+}
+
+
+</script>
+</body>
+</html>
